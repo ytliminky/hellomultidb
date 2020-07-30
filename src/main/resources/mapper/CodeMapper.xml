@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kohyoung.spc.mng.start.CodeMapper">
+
+	<resultMap id="CodeMap" type="com.kohyoung.spc.mng.start.Code">
+		<result property="codeId" column="code_id" javaType="int" jdbcType="INTEGER" />
+		<result property="code" column="code" javaType="String" jdbcType="VARCHAR" />
+		<result property="parentCode" column="p_code" javaType="String" jdbcType="VARCHAR" />
+		<result property="codeLabel" column="code_lbl" javaType="String" jdbcType="VARCHAR" />
+		<result property="numberValue" column="num_val" javaType="float" jdbcType="FLOAT" />
+		<result property="stringValue" column="str_val" javaType="String" jdbcType="VARCHAR" />
+		<result property="useFlag" column="use_fg" />
+<!-- 		<result property="editedAt" column="edited_at" /> -->
+		<result property="memo" column="memo" javaType="String" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<select id="searchList" parameterType="java.util.HashMap" resultMap="CodeMap" >
+    SELECT cod.code_id
+          ,cod.code
+          ,cod.p_code
+          ,cod.code_lbl
+          ,cod.num_val
+          ,cod.str_val
+      FROM tb_code cod
+		<where>
+			<if test="parentCode != null and parentCode != ''">
+       AND cod.p_code = #{parentCode}
+			</if>
+			<if test="useFlag != null and useFlag != ''">
+       AND cod.use_fg = #{useFlag}
+			</if>
+			<if test="scCode != null and scCode != ''">
+       AND cod.code like concat('%', #{scCode}, '%')
+			</if>
+			<if test="scCodeLabel != null and scCodeLabel != ''">
+       AND cod.code_lbl like concat('%', #{scCodeLabel}, '%')
+			</if>
+		</where>
+  ORDER BY cod.p_code, cod.code
+	</select>
+
+	<select id="searchCount" parameterType="java.util.HashMap" resultType="int" >
+    SELECT count(1)
+      FROM tb_code cod
+		<where>
+			<if test="parentCode != null and parentCode != ''">
+       AND cod.p_code = #{parentCode}
+			</if>
+			<if test="useFlag != null and useFlag != ''">
+       AND cod.use_fg = #{useFlag}
+			</if>
+			<if test="scCode != null and scCode != ''">
+       AND cod.code like concat('%', #{scCode}, '%')
+			</if>
+			<if test="scCodeLabel != null and scCodeLabel != ''">
+       AND cod.code_lbl like concat('%', #{scCodeLabel}, '%')
+			</if>
+		</where>
+	</select>
+
+	<select id="selectOne" parameterType="int" resultMap="CodeMap" >
+    SELECT *
+      FROM tb_code
+     WHERE code_id = #{codeId}
+	</select>
+
+	<insert id="insert" parameterType="com.kohyoung.spc.mng.start.Code">
+    INSERT INTO tb_code (
+                code
+               ,p_code
+               ,code_lbl
+               ,num_val
+               ,str_val
+               ,memo
+               ,edited_at
+              ) VALUES (
+                #{code}
+               ,#{parentCode}
+               ,#{codeLabel}
+               ,#{numberValue}
+               ,#{stringValue}
+               ,#{memo}
+               ,now()
+              )
+	</insert>
+
+	<update id="update" parameterType="com.kohyoung.spc.mng.start.Code">
+    UPDATE tb_code SET
+           edited_at = now()
+		<if test="code != null and code != ''">
+          ,code = #{code}
+		</if>
+		<if test="parentCode != null and parentCode != ''">
+          ,p_code = #{parentCode}
+		</if>
+		<if test="codeLabel != null and codeLabel != ''">
+          ,code_lbl = #{codeLabel}
+		</if>
+		<if test="numberValue != null and numberValue != ''">
+          ,num_val = #{numberValue}
+		</if>
+		<if test="stringValue != null and stringValue != ''">
+          ,str_val = #{stringValue}
+		</if>
+		<if test="memo != null">
+          ,memo = #{memo}
+		</if>
+     WHERE code_id = #{codeId}
+	</update>
+
+	<update id="deleteFg" parameterType="int">
+    UPDATE tb_code SET
+           edited_at = now()
+          ,use_fg = 'N'
+     WHERE code_id = #{codeId}
+	</update>
+
+	<!-- not yet used -->
+	<select id="selectList" parameterType="com.kohyoung.spc.mng.start.Code" resultMap="CodeMap" >
+    SELECT cod.*
+      FROM (
+           SELECT cod.code_id
+                 ,cod.code
+                 ,cod.p_code
+                 ,cod.code_lbl
+                 ,cod.num_val
+                 ,cod.str_val
+             FROM tb_code cod
+		<where>
+			<if test="parentCode != null and parentCode != ''">
+              AND cod.p_code = #{parentCode}
+			</if>
+			<if test="useFlag != null and useFlag != ''">
+              AND cod.use_fg = #{useFlag}
+			</if>
+		</where>
+         ORDER BY cod.p_code, cod.code
+           ) cod
+		<if test="maxResults != null and maxResults != ''">
+     LIMIT
+			<if test="skipResults != null and skipResults != ''">
+     #{skipResults} ,
+			</if>
+     #{maxResults}
+		</if>
+	</select>
+
+	<select id="selectOneByCode" parameterType="com.kohyoung.spc.mng.start.Code" resultMap="CodeMap" >
+    SELECT *
+      FROM tb_code
+     WHERE p_code = #{parentCode}
+       AND code = #{code}
+	</select>
+
+	<delete id="deletePK" parameterType="int">
+    DELETE
+      FROM tb_code
+     WHERE code_id = #{codeId}
+	</delete>
+
+	<delete id="deleteByCode" parameterType="com.kohyoung.spc.mng.start.Code">
+    DELETE
+      FROM tb_code
+     WHERE p_code = #{parentCode}
+       AND code = #{code}
+	</delete>
+
+	<update id="deleteFgByCode" parameterType="com.kohyoung.spc.mng.start.Code">
+    UPDATE tb_code SET
+           edited_at = now()
+          ,use_fg = 'N'
+     WHERE p_code = #{parentCode}
+       AND code = #{code}
+	</update>
+
+</mapper>
